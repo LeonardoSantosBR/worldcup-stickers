@@ -36,7 +36,7 @@ public class TradeRequest {
 
     @OneToMany(mappedBy = "tradeRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<TradeItem> items = new ArrayList<>();
+    private List<TradeItem> items = new ArrayList<>(); //one tradeRequest can have many tradeItems
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
