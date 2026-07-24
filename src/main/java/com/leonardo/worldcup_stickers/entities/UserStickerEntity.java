@@ -12,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserSticker {
+public class UserStickerEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

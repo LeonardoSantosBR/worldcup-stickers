@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.leonardo.worldcup_stickers.entities.StickerEntity;
 import com.leonardo.worldcup_stickers.entities.UserEntity;
-import com.leonardo.worldcup_stickers.entities.UserSticker;
+import com.leonardo.worldcup_stickers.entities.UserStickerEntity;
 import com.leonardo.worldcup_stickers.enums.RarityEnum;
 import com.leonardo.worldcup_stickers.exceptions.UserNotFoundException;
 import com.leonardo.worldcup_stickers.repositories.StickersRepository;
@@ -68,9 +68,9 @@ public class StickersService {
     }
 
     private void addToUserCollection(UserEntity user, StickerEntity sticker) {
-        UserSticker userSticker = userStickersRepository
+        UserStickerEntity userSticker = userStickersRepository
                 .findByUserIdAndStickerId(user.getId(), sticker.getId())
-                .orElseGet(() -> UserSticker.builder()
+                .orElseGet(() -> UserStickerEntity.builder()
                         .user(user)
                         .sticker(sticker)
                         .quantity(0)
