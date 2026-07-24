@@ -3,6 +3,7 @@ package com.leonardo.worldcup_stickers.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.leonardo.worldcup_stickers.config.JwtAuthFilter;
+import com.leonardo.worldcup_stickers.dto.MyProfileDto;
 import com.leonardo.worldcup_stickers.dto.MyStickerDto;
 import com.leonardo.worldcup_stickers.dto.PageResponseDto;
 import com.leonardo.worldcup_stickers.entities.UserEntity;
@@ -28,6 +29,11 @@ public class UsersController {
     @PostMapping
     public boolean create(@RequestBody UserEntity user){
         return this.usersService.create(user);
+    }
+
+    @GetMapping("/my-profile")
+    public MyProfileDto myStickers(@RequestAttribute(JwtAuthFilter.USER_ID_ATTRIBUTE) Long userId) {
+        return this.usersService.findMyUser(userId);
     }
 
     @GetMapping("/my-stickers")

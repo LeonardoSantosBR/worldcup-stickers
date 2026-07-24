@@ -14,4 +14,6 @@ public interface UserStickersRepository extends JpaRepository<UserStickerEntity,
 
     @EntityGraph(attributePaths = "sticker")
     Page<UserStickerEntity> findByUserId(Long userId, Pageable pageable);
+
+    long countByUserId(Long userId);
 }
