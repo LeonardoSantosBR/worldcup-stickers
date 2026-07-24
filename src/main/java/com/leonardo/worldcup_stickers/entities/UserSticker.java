@@ -20,11 +20,11 @@ public class UserSticker {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sticker_id", nullable = false)
-    private Sticker sticker;
+    private StickerEntity sticker;
 
     @Column(nullable = false)
     @Builder.Default

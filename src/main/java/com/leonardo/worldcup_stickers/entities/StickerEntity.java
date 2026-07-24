@@ -1,8 +1,8 @@
 package com.leonardo.worldcup_stickers.entities;
 
-import com.leonardo.worldcup_stickers.enums.Position;
-import com.leonardo.worldcup_stickers.enums.Rarity;
-import com.leonardo.worldcup_stickers.enums.StickerGroup;
+import com.leonardo.worldcup_stickers.enums.PositionEnum;
+import com.leonardo.worldcup_stickers.enums.RarityEnum;
+import com.leonardo.worldcup_stickers.enums.StickerGroupEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Sticker {
+public class StickerEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,16 +36,16 @@ public class Sticker {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "sticker_group")
-    private StickerGroup group;
+    private StickerGroupEnum group;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Position position;
+    private PositionEnum position;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private Rarity rarity = Rarity.COMMON;
+    private RarityEnum rarity = RarityEnum.COMMON;
 
     private String imageUrl;
 

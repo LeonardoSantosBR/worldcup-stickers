@@ -1,6 +1,6 @@
 package com.leonardo.worldcup_stickers.entities;
 
-import com.leonardo.worldcup_stickers.enums.Role;
+import com.leonardo.worldcup_stickers.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +35,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private Role role = Role.USER;
+    private RoleEnum role = RoleEnum.USER;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

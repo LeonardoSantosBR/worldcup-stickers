@@ -1,6 +1,6 @@
 package com.leonardo.worldcup_stickers.enums;
 
-public enum TradeStatus {
+public enum TradeStatusEnum {
     PENDING,
     ACCEPTED,
     REJECTED,

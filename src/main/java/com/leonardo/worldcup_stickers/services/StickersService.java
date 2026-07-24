@@ -7,10 +7,10 @@ import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.leonardo.worldcup_stickers.entities.Sticker;
-import com.leonardo.worldcup_stickers.entities.User;
+import com.leonardo.worldcup_stickers.entities.StickerEntity;
+import com.leonardo.worldcup_stickers.entities.UserEntity;
 import com.leonardo.worldcup_stickers.entities.UserSticker;
-import com.leonardo.worldcup_stickers.enums.Rarity;
+import com.leonardo.worldcup_stickers.enums.RarityEnum;
 import com.leonardo.worldcup_stickers.exceptions.UserNotFoundException;
 import com.leonardo.worldcup_stickers.repositories.StickersRepository;
 import com.leonardo.worldcup_stickers.repositories.UserStickersRepository;
@@ -37,37 +37,37 @@ public class StickersService {
     }
 
     @Transactional
-    public List<Sticker> openPackage(Long userId) {
-        User user = usersRepository.findById(userId)
+    public List<StickerEntity> openPackage(Long userId) {
+        UserEntity user = usersRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        List<Sticker> drawnStickers = new ArrayList<>();
+        List<StickerEntity> drawnStickers = new ArrayList<>();
         for (int i = 0; i < PACKAGE_SIZE; i++) {
-            Rarity rarity = drawRarity();
-            Sticker sticker = drawStickerByRarity(rarity);
+            RarityEnum rarity = drawRarity();
+            StickerEntity sticker = drawStickerByRarity(rarity);
             addToUserCollection(user, sticker);
             drawnStickers.add(sticker);
         }
         return drawnStickers;
     }
 
-    private Rarity drawRarity() {
+    private RarityEnum drawRarity() {
         int roll = random.nextInt(100);
         if (roll < COMMON_CHANCE) {
-            return Rarity.COMMON;
+            return RarityEnum.COMMON;
         }
         if (roll < COMMON_CHANCE + RARE_CHANCE) {
-            return Rarity.RARE;
+            return RarityEnum.RARE;
         }
-        return Rarity.LEGENDARY;
+        return RarityEnum.LEGENDARY;
     }
 
-    private Sticker drawStickerByRarity(Rarity rarity) {
-        List<Sticker> pool = stickersRepository.findByRarity(rarity);
+    private StickerEntity drawStickerByRarity(RarityEnum rarity) {
+        List<StickerEntity> pool = stickersRepository.findByRarity(rarity);
         return pool.get(random.nextInt(pool.size()));
     }
 
-    private void addToUserCollection(User user, Sticker sticker) {
+    private void addToUserCollection(UserEntity user, StickerEntity sticker) {
         UserSticker userSticker = userStickersRepository
                 .findByUserIdAndStickerId(user.getId(), sticker.getId())
                 .orElseGet(() -> UserSticker.builder()

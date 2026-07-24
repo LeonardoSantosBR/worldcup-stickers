@@ -1,6 +1,6 @@
 package com.leonardo.worldcup_stickers.enums;
 
-public enum Rarity {
+public enum RarityEnum {
     COMMON,
     RARE,
     LEGENDARY

@@ -2,7 +2,7 @@ package com.leonardo.worldcup_stickers.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import com.leonardo.worldcup_stickers.entities.User;
+import com.leonardo.worldcup_stickers.entities.UserEntity;
 import com.leonardo.worldcup_stickers.services.UsersService;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +19,7 @@ public class UsersController {
     }
     
     @PostMapping
-    public boolean create(@RequestBody User user){
+    public boolean create(@RequestBody UserEntity user){
         return this.usersService.create(user);
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.leonardo.worldcup_stickers.dto.AuthDto;
-import com.leonardo.worldcup_stickers.dto.TokenResponse;
+import com.leonardo.worldcup_stickers.dto.TokenResponseDto;
 import com.leonardo.worldcup_stickers.services.AuthService;
 
 @RestController
@@ -19,8 +19,8 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public TokenResponse signin(@RequestBody AuthDto body) {
+    public TokenResponseDto signin(@RequestBody AuthDto body) {
         String token = authService.signin(body.getEmail(), body.getPassword());
-        return new TokenResponse(token);
+        return new TokenResponseDto(token);
     }
 }

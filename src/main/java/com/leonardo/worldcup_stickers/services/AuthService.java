@@ -2,7 +2,7 @@ package com.leonardo.worldcup_stickers.services;
 
 import org.springframework.stereotype.Service;
 
-import com.leonardo.worldcup_stickers.entities.User;
+import com.leonardo.worldcup_stickers.entities.UserEntity;
 import com.leonardo.worldcup_stickers.exceptions.InvalidCredentialsException;
 import com.leonardo.worldcup_stickers.repositories.UsersRepository;
 
@@ -19,7 +19,7 @@ public class AuthService {
     }
 
     public String signin(String email, String password) {
-        User user = usersRepository.findByEmail(email)
+        UserEntity user = usersRepository.findByEmail(email)
                 .orElseThrow(InvalidCredentialsException::new);
 
         if (!hashService.matches(password, user.getPassword())) {

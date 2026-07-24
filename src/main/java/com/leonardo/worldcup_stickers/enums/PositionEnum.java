@@ -1,6 +1,6 @@
 package com.leonardo.worldcup_stickers.enums;
 
-public enum Position {
+public enum PositionEnum {
     GOALKEEPER,
     DEFENDER,
     MIDFIELDER,

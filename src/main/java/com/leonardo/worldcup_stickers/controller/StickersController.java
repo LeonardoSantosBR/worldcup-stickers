@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.leonardo.worldcup_stickers.config.JwtAuthFilter;
-import com.leonardo.worldcup_stickers.entities.Sticker;
+import com.leonardo.worldcup_stickers.entities.StickerEntity;
 import com.leonardo.worldcup_stickers.services.StickersService;
 
 @RestController
@@ -21,7 +21,7 @@ public class StickersController {
     }
 
     @PostMapping("/open-package")
-    public List<Sticker> openPackage(@RequestAttribute(JwtAuthFilter.USER_ID_ATTRIBUTE) Long userId) {
+    public List<StickerEntity> openPackage(@RequestAttribute(JwtAuthFilter.USER_ID_ATTRIBUTE) Long userId) {
         return stickersService.openPackage(userId);
     }
 }

@@ -2,7 +2,7 @@ package com.leonardo.worldcup_stickers.services;
 
 import org.springframework.stereotype.Service;
 
-import com.leonardo.worldcup_stickers.entities.User;
+import com.leonardo.worldcup_stickers.entities.UserEntity;
 import com.leonardo.worldcup_stickers.exceptions.EmailAlreadyExistsException;
 import com.leonardo.worldcup_stickers.repositories.UsersRepository;
 
@@ -16,7 +16,7 @@ public class UsersService {
         this.hashService = hashService;
     }
 
-    public boolean create(User user) {
+    public boolean create(UserEntity user) {
         if (usersRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException(user.getEmail());
         }
