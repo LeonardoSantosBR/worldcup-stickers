@@ -12,10 +12,12 @@ import com.leonardo.worldcup_stickers.dto.MyStickerDto;
 import com.leonardo.worldcup_stickers.dto.PageResponseDto;
 import com.leonardo.worldcup_stickers.entities.UserEntity;
 import com.leonardo.worldcup_stickers.entities.UserStickerEntity;
+import com.leonardo.worldcup_stickers.entities.UserTradeInventoryEntity;
 import com.leonardo.worldcup_stickers.exceptions.EmailAlreadyExistsException;
 import com.leonardo.worldcup_stickers.exceptions.UserNotFoundException;
 import com.leonardo.worldcup_stickers.repositories.StickersRepository;
 import com.leonardo.worldcup_stickers.repositories.UserStickersRepository;
+import com.leonardo.worldcup_stickers.repositories.UserTradeInventoriesRepository;
 import com.leonardo.worldcup_stickers.repositories.UsersRepository;
 
 @Service
@@ -24,28 +26,38 @@ public class UsersService {
 
     private final UsersRepository usersRepository;
     private final UserStickersRepository userStickersRepository;
+    private final UserTradeInventoriesRepository userTradeInventoriesRepository;
     private final StickersRepository stickersRepository;
     private final HashService hashService;
 
     public UsersService(
             UsersRepository usersRepository,
             UserStickersRepository userStickersRepository,
+            UserTradeInventoriesRepository userTradeInventoriesRepository,
             StickersRepository stickersRepository,
             HashService hashService) {
         this.usersRepository = usersRepository;
         this.userStickersRepository = userStickersRepository;
+        this.userTradeInventoriesRepository = userTradeInventoriesRepository;
         this.stickersRepository = stickersRepository;
         this.hashService = hashService;
     }
 
+    @Transactional
     public boolean create(UserEntity user) {
         if (usersRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException(user.getEmail());
         }
-        
+
         String hashedPassword = hashService.hash(user.getPassword());
         user.setPassword(hashedPassword);
-        usersRepository.save(user);
+        UserEntity savedUser = usersRepository.save(user);
+
+        userTradeInventoriesRepository.save(
+                UserTradeInventoryEntity.builder()
+                        .user(savedUser)
+                        .build());
+
         return true;
     }
 
