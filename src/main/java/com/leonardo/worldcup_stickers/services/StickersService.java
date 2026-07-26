@@ -19,7 +19,7 @@ import com.leonardo.worldcup_stickers.repositories.UsersRepository;
 @Service
 public class StickersService {
     private static final int PACKAGE_SIZE = 7;
-    private static final int COMMON_CHANCE = 55;
+    private static final int COMMON_CHANCE = 60;
     private static final int RARE_CHANCE = 30;
 
     private final StickersRepository stickersRepository;
