@@ -19,6 +19,8 @@ public interface UserTradeInventoriesRepository extends JpaRepository<UserTradeI
     @Query(value = """
             SELECT s.id AS "stickerId",
                    s.player_name AS "stickerName",
+                   s.rarity,
+                   s.position,
                    u.id AS "ownerId",
                    u.name AS "ownerName",
                    u.email AS "ownerEmail"
