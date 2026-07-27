@@ -76,7 +76,6 @@ public class UserTradeOffersService {
         UserEntity receiver = usersRepository.findById(body.receiverId())
                 .orElseThrow(() -> new UserNotFoundException(body.receiverId()));
 
-        // proposer precisa possuir tudo que esta oferecendo
         Set<Long> ownedByProposer = new HashSet<>(userStickersRepository.findStickerIdsByUserId(proposerId));
         Set<Long> notOwned = new LinkedHashSet<>(offered);
         notOwned.removeAll(ownedByProposer);
@@ -84,7 +83,6 @@ public class UserTradeOffersService {
             throw new StickersNotOwnedException(notOwned);
         }
 
-        // receiver precisa ter disponibilizado tudo que esta sendo pedido
         Set<Long> availableFromReceiver = userTradeInventoriesRepository.findByUserId(receiver.getId())
                 .map(UserTradeInventoryEntity::getAvailableStickerIds)
                 .map(HashSet::new)
@@ -117,7 +115,6 @@ public class UserTradeOffersService {
         UserEntity proposer = offer.getProposer();
         UserEntity receiver = offer.getReceiver();
 
-        // revalida a posse dos dois lados — o estado pode ter mudado desde a oferta
         assertOwns(proposer, offer.getOfferedStickerIds());
         assertOwns(receiver, offer.getRequestedStickerIds());
 
