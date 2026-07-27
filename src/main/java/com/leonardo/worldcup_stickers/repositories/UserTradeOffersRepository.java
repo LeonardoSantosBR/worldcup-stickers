@@ -15,22 +15,22 @@ import com.leonardo.worldcup_stickers.enums.TradeStatusEnum;
 
 public interface UserTradeOffersRepository extends JpaRepository<UserTradeOffersEntity, Long> {
 
-    /** Ofertas recebidas — a caixa de entrada do usuario. */
+    /** Offers received — the user's inbox. */
     Page<UserTradeOffersEntity> findByReceiverIdAndStatus(Long receiverId, TradeStatusEnum status, Pageable pageable);
 
-    /** Ofertas enviadas pelo usuario. */
+    /** Offers sent by the user. */
     Page<UserTradeOffersEntity> findByProposerIdAndStatus(Long proposerId, TradeStatusEnum status, Pageable pageable);
 
     Optional<UserTradeOffersEntity> findByIdAndReceiverId(Long id, Long receiverId);
 
     Optional<UserTradeOffersEntity> findByIdAndProposerId(Long id, Long proposerId);
 
-    /** Todas as ofertas pendentes envolvendo um usuario — usado para invalidar em lote apos uma troca aceita. */
+    /** Every pending offer involving a user — used to invalidate offers in bulk after a trade is accepted. */
     List<UserTradeOffersEntity> findByStatusAndProposerIdOrStatusAndReceiverId(
             TradeStatusEnum proposerStatus, Long proposerId,
             TradeStatusEnum receiverStatus, Long receiverId);
 
-    /** Ofertas em um dado status que envolvem qualquer um dos usuarios informados. */
+    /** Offers in a given status involving any of the given users. */
     @Query("""
             SELECT o FROM UserTradeOffersEntity o
             WHERE o.status = :status

@@ -8,11 +8,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * Historico imutavel de cada mudanca de status de uma oferta de troca.
+ * Immutable history of every status change of a trade offer.
  *
- * Uma linha e gravada em toda transicao: PENDING (ofertado) na criacao,
- * ACCEPTED / REJECTED quando o receiver responde, CANCELLED quando o
- * proposer desiste.
+ * One row is written on each transition: PENDING when the offer is created,
+ * ACCEPTED / REJECTED when the receiver responds, CANCELLED when the proposer
+ * gives up.
  */
 @Entity
 @Table(name = "user_trade_offers_logs", indexes = {

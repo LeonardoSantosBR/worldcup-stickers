@@ -55,6 +55,11 @@ public class UserTradeOffersService {
         this.usersRepository = usersRepository;
     }
 
+    /**
+     * Creates a trade offer from the authenticated user (proposer) to the owner
+     * of the wanted stickers (receiver). The offer starts as PENDING and already
+     * writes the first history log.
+     */
     @Transactional
     public TradeOfferDto makeOffer(Long proposerId, MakeOfferDto body) {
         if (proposerId.equals(body.receiverId())) {
@@ -76,6 +81,7 @@ public class UserTradeOffersService {
         UserEntity receiver = usersRepository.findById(body.receiverId())
                 .orElseThrow(() -> new UserNotFoundException(body.receiverId()));
 
+        // the proposer must own everything they are offering
         Set<Long> ownedByProposer = new HashSet<>(userStickersRepository.findStickerIdsByUserId(proposerId));
         Set<Long> notOwned = new LinkedHashSet<>(offered);
         notOwned.removeAll(ownedByProposer);
@@ -83,6 +89,7 @@ public class UserTradeOffersService {
             throw new StickersNotOwnedException(notOwned);
         }
 
+        // the receiver must have listed everything that is being requested
         Set<Long> availableFromReceiver = userTradeInventoriesRepository.findByUserId(receiver.getId())
                 .map(UserTradeInventoryEntity::getAvailableStickerIds)
                 .map(HashSet::new)
@@ -108,6 +115,11 @@ public class UserTradeOffersService {
         return TradeOfferDto.fromEntity(saved);
     }
 
+    /**
+     * The receiver accepts the offer: stickers change hands, both trade
+     * inventories are synced, and any other pending offer that became impossible
+     * (a sticker no longer belongs to its owner) is rejected automatically.
+     */
     @Transactional
     public TradeOfferDto acceptOffer(Long receiverId, Long offerId, String note) {
         UserTradeOffersEntity offer = loadPendingOfferForReceiver(receiverId, offerId);
@@ -115,6 +127,7 @@ public class UserTradeOffersService {
         UserEntity proposer = offer.getProposer();
         UserEntity receiver = offer.getReceiver();
 
+        // re-check ownership on both sides — state may have changed since the offer
         assertOwns(proposer, offer.getOfferedStickerIds());
         assertOwns(receiver, offer.getRequestedStickerIds());
 
@@ -134,6 +147,7 @@ public class UserTradeOffersService {
         return TradeOfferDto.fromEntity(saved);
     }
 
+    /** The receiver rejects the offer. Nothing changes hands. */
     @Transactional
     public TradeOfferDto rejectOffer(Long receiverId, Long offerId, String note) {
         UserTradeOffersEntity offer = loadPendingOfferForReceiver(receiverId, offerId);
@@ -166,6 +180,7 @@ public class UserTradeOffersService {
         }
     }
 
+    /** Moves one unit of each sticker from one user to the other. */
     private void transferStickers(UserEntity from, UserEntity to, List<Long> stickerIds) {
         for (Long stickerId : stickerIds) {
             UserStickerEntity source = userStickersRepository
@@ -193,6 +208,7 @@ public class UserTradeOffersService {
         }
     }
 
+    /** Drops from the trade inventory every sticker the user no longer owns. */
     private void syncTradeInventory(Long userId) {
         userTradeInventoriesRepository.findByUserId(userId).ifPresent(inventory -> {
             Set<Long> owned = new HashSet<>(userStickersRepository.findStickerIdsByUserId(userId));
@@ -207,6 +223,10 @@ public class UserTradeOffersService {
         });
     }
 
+    /**
+     * After a trade, other pending offers may have become impossible because one
+     * of the parties no longer owns the sticker they promised. Those get rejected.
+     */
     private void invalidateConflictingOffers(UserTradeOffersEntity accepted, UserEntity actor) {
         Set<Long> tradedUserIds = Set.of(accepted.getProposer().getId(), accepted.getReceiver().getId());
 
