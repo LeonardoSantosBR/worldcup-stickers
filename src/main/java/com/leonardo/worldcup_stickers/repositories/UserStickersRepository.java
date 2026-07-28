@@ -1,5 +1,6 @@
 package com.leonardo.worldcup_stickers.repositories;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,9 @@ public interface UserStickersRepository extends JpaRepository<UserStickerEntity,
 
     @EntityGraph(attributePaths = "sticker")
     Page<UserStickerEntity> findByUserId(Long userId, Pageable pageable);
+
+    @EntityGraph(attributePaths = "sticker")
+    Page<UserStickerEntity> findByUserIdAndStickerIdIn(Long userId, Collection<Long> stickerIds, Pageable pageable);
 
     long countByUserId(Long userId);
 }

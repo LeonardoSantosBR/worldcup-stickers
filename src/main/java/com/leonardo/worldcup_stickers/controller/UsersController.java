@@ -44,4 +44,11 @@ public class UsersController {
         return this.usersService.findMyStickers(userId, page, limit);
     }
     
+    @GetMapping("/my-stickers-available-trade")
+    public PageResponseDto<MyStickerDto> myStickersAvailableTrade(
+            @RequestAttribute(JwtAuthFilter.USER_ID_ATTRIBUTE) Long userId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int limit) {
+        return this.usersService.findMyStickersAvailableTrade(userId, page, limit);
+    }
 }

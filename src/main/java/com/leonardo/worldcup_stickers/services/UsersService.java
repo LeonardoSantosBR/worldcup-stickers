@@ -1,5 +1,7 @@
 package com.leonardo.worldcup_stickers.services;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -80,6 +82,26 @@ public class UsersService {
                 Sort.by("sticker.number").ascending());
 
         Page<UserStickerEntity> result = userStickersRepository.findByUserId(userId, pageable);
+        return PageResponseDto.from(result, MyStickerDto::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponseDto<MyStickerDto> findMyStickersAvailableTrade(Long userId, int page, int limit) {
+        Pageable pageable = PageRequest.of(
+                Math.max(page - 1, 0),
+                Math.min(Math.max(limit, 1), MAX_LIMIT),
+                Sort.by("sticker.number").ascending());
+
+        List<Long> availableStickerIds = userTradeInventoriesRepository.findByUserId(userId)
+                .map(UserTradeInventoryEntity::getAvailableStickerIds)
+                .orElseGet(List::of);
+
+        if (availableStickerIds.isEmpty()) {
+            return PageResponseDto.from(Page.<UserStickerEntity>empty(pageable), MyStickerDto::fromEntity);
+        }
+
+        Page<UserStickerEntity> result = userStickersRepository.findByUserIdAndStickerIdIn(
+                userId, availableStickerIds, pageable);
         return PageResponseDto.from(result, MyStickerDto::fromEntity);
     }
 }
