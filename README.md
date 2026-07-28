@@ -1,5 +1,7 @@
 # ⚽ World Cup Stickers API
 
+<img width="1820" height="980" alt="Image" src="https://github.com/user-attachments/assets/969cca56-21af-4765-915a-a28f5a6900bd" />
+
 > A **study project** built to deepen my skills as a **Java / Spring Boot** back-end developer.
 
 A REST API that recreates the classic World Cup sticker album, centered on the one thing every collector remembers: **trading duplicate stickers with other people**. Each user opens packs, builds a collection, lists their spare stickers, and negotiates trades with other users.
