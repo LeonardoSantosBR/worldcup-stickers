@@ -49,7 +49,8 @@ public class StickersController {
     public PageResponseDto<AvailableTradeStickerDto> AvailableTrades(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) String name,
             @RequestAttribute(JwtAuthFilter.USER_ID_ATTRIBUTE) Long userId) {
-        return userTradeInventoriesService.findAllAvailableForTrade(userId, page, limit);
+        return userTradeInventoriesService.findAllAvailableForTrade(userId, page, limit, name);
     }
 }

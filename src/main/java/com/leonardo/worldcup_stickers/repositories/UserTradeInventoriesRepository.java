@@ -29,6 +29,8 @@ public interface UserTradeInventoriesRepository extends JpaRepository<UserTradeI
             CROSS JOIN LATERAL unnest(i.available_sticker_ids) AS sticker_id
             JOIN stickers s ON s.id = sticker_id AND s.deleted_at IS NULL
             WHERE i.user_id <> :userId
+              AND (CAST(:name AS text) IS NULL
+                   OR s.player_name ILIKE CONCAT('%', CAST(:name AS text), '%'))
             ORDER BY s.number ASC, u.name ASC
             """,
             countQuery = """
@@ -38,7 +40,12 @@ public interface UserTradeInventoriesRepository extends JpaRepository<UserTradeI
             CROSS JOIN LATERAL unnest(i.available_sticker_ids) AS sticker_id
             JOIN stickers s ON s.id = sticker_id AND s.deleted_at IS NULL
             WHERE i.user_id <> :userId
+              AND (CAST(:name AS text) IS NULL
+                   OR s.player_name ILIKE CONCAT('%', CAST(:name AS text), '%'))
             """,
             nativeQuery = true)
-    Page<AvailableTradeStickerView> findAllAvailableForTrade(@Param("userId") Long userId, Pageable pageable);
+    Page<AvailableTradeStickerView> findAllAvailableForTrade(
+            @Param("userId") Long userId,
+            @Param("name") String name,
+            Pageable pageable);
 }
