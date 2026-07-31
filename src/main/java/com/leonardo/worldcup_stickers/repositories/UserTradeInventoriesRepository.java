@@ -12,11 +12,11 @@ import com.leonardo.worldcup_stickers.dto.AvailableTradeStickerView;
 import com.leonardo.worldcup_stickers.entities.UserTradeInventoryEntity;
 
 public interface UserTradeInventoriesRepository extends JpaRepository<UserTradeInventoryEntity, Long> {
-    Optional<UserTradeInventoryEntity> findByUserId(Long userId);
+       Optional<UserTradeInventoryEntity> findByUserId(Long userId);
 
-    boolean existsByUserId(Long userId);
+       boolean existsByUserId(Long userId);
 
-    @Query(value = """
+       @Query(value = """
             SELECT s.id AS "stickerId",
                    s.player_name AS "stickerName",
                    s.rarity,
@@ -44,8 +44,9 @@ public interface UserTradeInventoriesRepository extends JpaRepository<UserTradeI
                    OR s.player_name ILIKE CONCAT('%', CAST(:name AS text), '%'))
             """,
             nativeQuery = true)
-    Page<AvailableTradeStickerView> findAllAvailableForTrade(
-            @Param("userId") Long userId,
-            @Param("name") String name,
-            Pageable pageable);
+       Page<AvailableTradeStickerView> findAllAvailableForTrade(
+         @Param("userId") Long userId,
+         @Param("name") String name,
+         Pageable pageable
+       );
 }

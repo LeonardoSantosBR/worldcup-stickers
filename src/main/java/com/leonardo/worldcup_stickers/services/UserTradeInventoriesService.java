@@ -66,8 +66,7 @@ public class UserTradeInventoriesService {
 
         String nameFilter = (name == null || name.isBlank()) ? null : name.trim();
 
-        Page<AvailableTradeStickerView> result =
-                userTradeInventoriesRepository.findAllAvailableForTrade(userId, nameFilter, pageable);
+        Page<AvailableTradeStickerView> result = userTradeInventoriesRepository.findAllAvailableForTrade(userId, nameFilter, pageable);
         return PageResponseDto.from(result, AvailableTradeStickerDto::fromView);
     }
 
