@@ -126,7 +126,6 @@ public class UserTradeOffersService {
             throw new StickersNotOwnedException(notOwned);
         }
 
-        // the receiver must have listed everything that is being requested
         Set<Long> availableFromReceiver = userTradeInventoriesRepository.findByUserId(receiver.getId())
                 .map(UserTradeInventoryEntity::getAvailableStickerIds)
                 .map(HashSet::new)
