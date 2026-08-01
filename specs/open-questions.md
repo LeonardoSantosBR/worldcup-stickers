@@ -10,11 +10,13 @@ Nada aqui é um pedido de implementação. É um mapa.
 
 ## Bloqueantes de produto
 
-### OQ-01 — Não há como listar ofertas de troca
-O receiver não descobre pela API que recebeu uma oferta. O proposer não vê o que enviou.
-`UserTradeOffersRepository` já tem `findByReceiverIdAndStatus` e `findByProposerIdAndStatus`
-prontos e não usados. Sem isso, o fluxo de troca é inutilizável na prática.
-→ `GET /trade-offers/inbox` e `/outbox`, paginados, filtráveis por status.
+### OQ-01 — Falta o outbox _(inbox resolvido)_
+✅ `GET /trade-offers/inbox` implementado (`TO-28`…`TO-36`) — o receiver já descobre as
+ofertas que recebeu, com nome do proposer e das figurinhas.
+
+❌ Falta o lado do proposer: não há como ver as ofertas **enviadas**.
+`findByProposerIdAndStatus` continua pronto e sem uso.
+→ `GET /trade-offers/outbox`, espelhando o inbox.
 
 ### OQ-02 — `CANCELLED` é um estado órfão
 Está no `TradeStatusEnum` e no javadoc de `UserTradeOffersLogsEntity` ("CANCELLED quando o
@@ -111,3 +113,12 @@ e `/stickers/available-trades` são vitrine, não figurinha. Cabem melhor em um
 ### OQ-18 — `AuthDto` fora do padrão
 Classe mutável com campos públicos + getters/setters, sem validação, enquanto todos os
 outros DTOs são `record` com Bean Validation (`AR-05`).
+
+### OQ-19 — `StickerSummaryDto` pode ser raso demais _(inbox resolvido)_
+✅ O inbox devolve `proposerName` e as figurinhas como `{ id, name }` (`TO-33`…`TO-36`),
+sem N+1.
+
+❓ `StickerSummaryDto` expõe só `id` e `name`. Uma tela de troca provavelmente quer
+`number` (o "#34" do álbum), `rarity` e `imageUrl` — a query em lote já carrega a
+`StickerEntity` inteira, então incluí-los não custa nada a mais. Decisão de produto:
+esperar a UI pedir, ou já ampliar.

@@ -68,6 +68,31 @@ substring case-insensitive (`TI-11`).
 
 ## Ofertas de troca
 
+### `GET /trade-offers/inbox`
+Query: `page` (1), `limit` (20, máx. 100), `status` (opcional: `PENDING` | `ACCEPTED` |
+`REJECTED` | `CANCELLED`).
+
+Ofertas em que o usuário autenticado é o **receiver**, mais recentes primeiro
+(`TO-28`…`TO-36`). Sem `status` → todas.
+```json
+← 200 { "items": [ { "id": 3,
+                     "proposerId": 7,
+                     "proposerName": "Ana",
+                     "receiverId": 1,
+                     "requestedStickers": [ { "id": 1255, "name": "Vinícius Júnior" } ],
+                     "offeredStickers":   [ { "id": 811,  "name": "Lionel Messi" } ],
+                     "status": "PENDING",
+                     "message": "topa?",
+                     "createdAt": "2026-08-01T10:00:00",
+                     "respondedAt": null } ],
+        "page": 1, "limit": 20, "totalItems": 1, "totalPages": 1, "hasNext": false }
+```
+`TradeOfferDetailDto` — diferente do `TradeOfferDto` devolvido por criar/aceitar/recusar
+(`TO-33`). `name` é o `playerName`; vem `null` se a figurinha foi soft-deleted (`TO-36`).
+
+Inbox vazio → `200` com `items: []`. `status` inválido → `400` (formato padrão do Spring,
+case-sensitive).
+
 ### `POST /trade-offers/make-offer` → **201 Created**
 ```json
 → { "receiverId": 7,
@@ -97,9 +122,7 @@ Corpo opcional idêntico. Nada muda de mãos (`TO-21`).
 
 Existe suporte no repositório, mas **nenhum endpoint** para:
 
-- listar ofertas recebidas (inbox) — `findByReceiverIdAndStatus`
 - listar ofertas enviadas (outbox) — `findByProposerIdAndStatus`
 - cancelar a própria oferta (`CANCELLED`) — `findByIdAndProposerId`
 
-Ou seja: hoje o receiver **não tem como descobrir** que recebeu uma oferta pela API.
 Ver [open-questions.md](../open-questions.md).

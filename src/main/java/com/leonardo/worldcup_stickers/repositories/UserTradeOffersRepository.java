@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +16,17 @@ import com.leonardo.worldcup_stickers.enums.TradeStatusEnum;
 
 public interface UserTradeOffersRepository extends JpaRepository<UserTradeOffersEntity, Long> {
 
-    /** Offers received — the user's inbox. */
+    /**
+     * Offers received — the user's inbox, every status.
+     *
+     * The proposer is fetched eagerly because the listing shows their name; it is a
+     * to-one association, so the join does not multiply rows and pagination stays correct.
+     */
+    @EntityGraph(attributePaths = "proposer")
+    Page<UserTradeOffersEntity> findByReceiverId(Long receiverId, Pageable pageable);
+
+    /** Offers received — the user's inbox, filtered by status. */
+    @EntityGraph(attributePaths = "proposer")
     Page<UserTradeOffersEntity> findByReceiverIdAndStatus(Long receiverId, TradeStatusEnum status, Pageable pageable);
 
     /** Offers sent by the user. */

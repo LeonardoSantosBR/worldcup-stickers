@@ -9,11 +9,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.leonardo.worldcup_stickers.dto.MakeOfferDto;
+import com.leonardo.worldcup_stickers.dto.PageResponseDto;
+import com.leonardo.worldcup_stickers.dto.TradeOfferDetailDto;
 import com.leonardo.worldcup_stickers.dto.TradeOfferDto;
 import com.leonardo.worldcup_stickers.entities.StickerEntity;
 import com.leonardo.worldcup_stickers.entities.UserEntity;
@@ -27,6 +34,7 @@ import com.leonardo.worldcup_stickers.exceptions.StickersNotAvailableForTradeExc
 import com.leonardo.worldcup_stickers.exceptions.StickersNotOwnedException;
 import com.leonardo.worldcup_stickers.exceptions.TradeOfferNotFoundException;
 import com.leonardo.worldcup_stickers.exceptions.UserNotFoundException;
+import com.leonardo.worldcup_stickers.repositories.StickersRepository;
 import com.leonardo.worldcup_stickers.repositories.UserStickersRepository;
 import com.leonardo.worldcup_stickers.repositories.UserTradeInventoriesRepository;
 import com.leonardo.worldcup_stickers.repositories.UserTradeOffersLogsRepository;
@@ -35,31 +43,60 @@ import com.leonardo.worldcup_stickers.repositories.UsersRepository;
 
 @Service
 public class UserTradeOffersService {
+    private static final int MAX_LIMIT = 100;
 
     private final UserTradeOffersRepository userTradeOffersRepository;
     private final UserTradeOffersLogsRepository userTradeOffersLogsRepository;
     private final UserTradeInventoriesRepository userTradeInventoriesRepository;
     private final UserStickersRepository userStickersRepository;
     private final UsersRepository usersRepository;
+    private final StickersRepository stickersRepository;
 
     public UserTradeOffersService(
             UserTradeOffersRepository userTradeOffersRepository,
             UserTradeOffersLogsRepository userTradeOffersLogsRepository,
             UserTradeInventoriesRepository userTradeInventoriesRepository,
             UserStickersRepository userStickersRepository,
-            UsersRepository usersRepository) {
+            UsersRepository usersRepository,
+            StickersRepository stickersRepository) {
         this.userTradeOffersRepository = userTradeOffersRepository;
         this.userTradeOffersLogsRepository = userTradeOffersLogsRepository;
         this.userTradeInventoriesRepository = userTradeInventoriesRepository;
         this.userStickersRepository = userStickersRepository;
         this.usersRepository = usersRepository;
+        this.stickersRepository = stickersRepository;
     }
 
-    /**
-     * Creates a trade offer from the authenticated user (proposer) to the owner
-     * of the wanted stickers (receiver). The offer starts as PENDING and already
-     * writes the first history log.
-     */
+    @Transactional(readOnly = true)
+    public PageResponseDto<TradeOfferDetailDto> findReceivedOffers(Long receiverId, int page, int limit, TradeStatusEnum status) {
+        Pageable pageable = PageRequest.of(
+                Math.max(page - 1, 0),
+                Math.min(Math.max(limit, 1), MAX_LIMIT),
+                Sort.by("createdAt").descending());
+
+        Page<UserTradeOffersEntity> result = status == null
+                ? userTradeOffersRepository.findByReceiverId(receiverId, pageable)
+                : userTradeOffersRepository.findByReceiverIdAndStatus(receiverId, status, pageable);
+
+        Map<Long, String> stickerNames = loadStickerNames(result.getContent());
+        return PageResponseDto.from(result, offer -> TradeOfferDetailDto.fromEntity(offer, stickerNames));
+    }
+
+    private Map<Long, String> loadStickerNames(List<UserTradeOffersEntity> offers) {
+        Set<Long> stickerIds = offers.stream()
+                .flatMap(offer -> Stream.concat(
+                        offer.getRequestedStickerIds().stream(),
+                        offer.getOfferedStickerIds().stream()))
+                .collect(Collectors.toSet());
+
+        if (stickerIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return stickersRepository.findAllById(stickerIds).stream()
+                .collect(Collectors.toMap(StickerEntity::getId, StickerEntity::getPlayerName));
+    }
+
     @Transactional
     public TradeOfferDto makeOffer(Long proposerId, MakeOfferDto body) {
         if (proposerId.equals(body.receiverId())) {
@@ -114,12 +151,7 @@ public class UserTradeOffersService {
 
         return TradeOfferDto.fromEntity(saved);
     }
-
-    /**
-     * The receiver accepts the offer: stickers change hands, both trade
-     * inventories are synced, and any other pending offer that became impossible
-     * (a sticker no longer belongs to its owner) is rejected automatically.
-     */
+    
     @Transactional
     public TradeOfferDto acceptOffer(Long receiverId, Long offerId, String note) {
         UserTradeOffersEntity offer = loadPendingOfferForReceiver(receiverId, offerId);
@@ -147,7 +179,6 @@ public class UserTradeOffersService {
         return TradeOfferDto.fromEntity(saved);
     }
 
-    /** The receiver rejects the offer. Nothing changes hands. */
     @Transactional
     public TradeOfferDto rejectOffer(Long receiverId, Long offerId, String note) {
         UserTradeOffersEntity offer = loadPendingOfferForReceiver(receiverId, offerId);
@@ -180,7 +211,6 @@ public class UserTradeOffersService {
         }
     }
 
-    /** Moves one unit of each sticker from one user to the other. */
     private void transferStickers(UserEntity from, UserEntity to, List<Long> stickerIds) {
         for (Long stickerId : stickerIds) {
             UserStickerEntity source = userStickersRepository
@@ -208,7 +238,6 @@ public class UserTradeOffersService {
         }
     }
 
-    /** Drops from the trade inventory every sticker the user no longer owns. */
     private void syncTradeInventory(Long userId) {
         userTradeInventoriesRepository.findByUserId(userId).ifPresent(inventory -> {
             Set<Long> owned = new HashSet<>(userStickersRepository.findStickerIdsByUserId(userId));
@@ -223,10 +252,7 @@ public class UserTradeOffersService {
         });
     }
 
-    /**
-     * After a trade, other pending offers may have become impossible because one
-     * of the parties no longer owns the sticker they promised. Those get rejected.
-     */
+
     private void invalidateConflictingOffers(UserTradeOffersEntity accepted, UserEntity actor) {
         Set<Long> tradedUserIds = Set.of(accepted.getProposer().getId(), accepted.getReceiver().getId());
 

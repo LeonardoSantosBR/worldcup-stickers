@@ -120,6 +120,52 @@ oferta invalidada. É quem causou a mudança de estado.
 oferta invalidada é um terceiro, sua posse não é reconsultada (`ownedByUser.get(...)` é
 `null` e a condição é ignorada para ele). Isso é correto: a posse de terceiros não mudou.
 
+## Listar recebidas — `GET /trade-offers/inbox`
+
+**TO-28 — O inbox devolve apenas ofertas em que o usuário autenticado é o receiver.**
+O filtro é `receiverId` = id do token (`AU-07`); não há parâmetro para consultar o inbox
+alheio.
+
+**TO-29 — O filtro por `status` é opcional.** Ausente → todas as ofertas recebidas,
+qualquer status. Presente → só as daquele status. Valor inválido não é erro de domínio:
+o Spring falha na conversão do enum e devolve **400** no formato padrão dele (`EH-05`).
+A conversão é **case-sensitive** — `PENDING`, não `pending`.
+
+**TO-30 — Ordenação: `createdAt` decrescente.** Inbox mostra o mais recente primeiro —
+deliberadamente diferente da ordem canônica de figurinhas (`ST-02`), que é por `number`.
+
+**TO-31 — Paginação segue o contrato geral** (`CO-07`): `page` 1-based default `1`,
+`limit` default `20` clampado em `[1, 100]`.
+
+**TO-32 — Inbox vazio é sucesso.** `200` com `items: []`, nunca 404.
+
+**TO-33 — A resposta usa `TradeOfferDetailDto`, não `TradeOfferDto`.** O inbox é uma tela
+de leitura: precisa ser renderizável sem chamadas extras. Traz `proposerName` além do
+`proposerId`, e as figurinhas como objetos `{ id, name }` em `requestedStickers` /
+`offeredStickers` — não como listas de IDs.
+
+> Criar/aceitar/recusar continuam devolvendo `TradeOfferDto` (só IDs). São respostas de
+> confirmação de escrita, não de listagem: o cliente já sabe o que enviou.
+
+**TO-34 — O `name` da figurinha é o `playerName`.** Não o número nem o país. Figurinhas de
+`COACH` / `EMBLEM` também usam esse campo (`ST-06`).
+
+**TO-35 — Duas garantias contra N+1 no inbox:**
+
+1. O `proposer` vem por `@EntityGraph(attributePaths = "proposer")` nas duas queries do
+   repositório. É uma associação to-one, então o join **não multiplica linhas** e a
+   paginação continua correta.
+2. Os nomes das figurinhas são resolvidos em **uma única** query por página:
+   `loadStickerNames` junta todos os IDs de todas as ofertas num `Set` e faz um
+   `findAllById`. Página sem figurinha nenhuma não consulta o banco.
+
+> Regra para listagens novas: enriquecer item a item é N+1. Colete as chaves da página
+> inteira, busque em lote, e passe o `Map` para a factory do DTO.
+
+**TO-36 — Figurinha soft-deleted aparece com `name: null`.** `findAllById` respeita o
+`@SQLRestriction`, então uma figurinha apagada depois da oferta some do mapa. O `id` é
+preservado — a oferta histórica não perde informação. O cliente precisa tolerar `name` nulo.
+
 ## Recusar — `POST /trade-offers/{offerId}/reject`
 
 **TO-21 — Recusar não move nada.** Só troca o status para `REJECTED`, carimba
